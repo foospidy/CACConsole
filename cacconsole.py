@@ -19,7 +19,7 @@ if not os.path.exists(os.path.dirname(dbfile)):
 	os.makedirs(os.path.dirname(dbfile))
 
 # load console
-stdio.StandardIO(CloudAtCostConsole(dbfile)
+stdio.StandardIO(CloudAtCostConsole(dbfile))
 
 # start reactor
 reactor.run()

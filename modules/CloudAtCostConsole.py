@@ -73,11 +73,11 @@ class CloudAtCostConsole(basic.LineReceiver):
 			cpu         = server_data['cpu'].encode('UTF-8')
 			cpuusage    = server_data['cpuusage'].encode('UTF-8')
 			ram         = server_data['ram'].encode('UTF-8')
-			ramusage    = server_data['ramusage'].encode('UTF-8')
+			ramusage    = round(float(server_data['ramusage']) / int(server_data['ram']) * 100, 2)
 			storage     = server_data['storage'].encode('UTF-8')
-			hdusage     = server_data['hdusage'].encode('UTF-8')
+			hdusage     = round(float(server_data['hdusage']) / int(server_data['storage']) * 100, 2)
 			status      = server_data['status'].encode('UTF-8')
-			self.sendLine(sid + '\t' + hostname + '\t' + label + '\t' + template + '\t' + cpuusage + '/' + cpu + '\t' + ramusage + '/' + ram + '\t' + hdusage + '/' + storage + '\t' + status)
+			self.sendLine(sid + '\t' + hostname + '\t' + label + '\t' + template + '\t' + cpuusage + '/' + cpu + '\t' + str(ramusage) + '% of ' + ram + '\t' + str(hdusage) + '% of ' + storage + '\t' + status)
 
 	def do_poweron(self, serverid):
 		"""poweron: Power on a server. Usage: poweron <serverid>"""

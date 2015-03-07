@@ -13,8 +13,13 @@ import sys
 # prevent creation of compiled bytecode files
 sys.dont_write_bytecode = True
 
+# setup local database
+dbfile = os.path.dirname(os.path.abspath(__file__)) + '/data/cacconsole.db')
+if not os.path.exists(os.path.dirname(dbfile)):
+	os.makedirs(os.path.dirname(dbfile))
+
 # load console
-stdio.StandardIO(CloudAtCostConsole(os.path.dirname(os.path.abspath(__file__)) + '/data/cacconsole.db'))
+stdio.StandardIO(CloudAtCostConsole(dbfile)
 
 # start reactor
 reactor.run()

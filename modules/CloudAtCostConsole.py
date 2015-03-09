@@ -64,6 +64,11 @@ class CloudAtCostConsole(basic.LineReceiver):
 		
 		servers = self.cac.get_server_info()
 
+		self.sendLine('---------------------------------------------------------------------------------------------------------------------')
+		#self.sendLine('sid   hostname    label   template  CPUs  RAM  Disk  Status')
+		self.sendLine('{0:11} {1:32} {2:15} {3:4} {4:18} {5:18} {6:10}'.format('SID', 'Hostname', 'Label', 'CPUs', 'RAM', 'Storage', 'Status'))
+		self.sendLine('---------------------------------------------------------------------------------------------------------------------')
+
 		for i in range(0, len(servers)):
 			server_data = servers[i]
 			sid         = server_data['sid'].encode('UTF-8')
@@ -77,7 +82,8 @@ class CloudAtCostConsole(basic.LineReceiver):
 			storage     = server_data['storage'].encode('UTF-8')
 			hdusage     = round(float(server_data['hdusage']) / int(server_data['storage']) * 100, 2)
 			status      = server_data['status'].encode('UTF-8')
-			self.sendLine(sid + '\t' + hostname + '\t' + label + '\t' + template + '\t' + cpuusage + '/' + cpu + '\t' + str(ramusage) + '% of ' + ram + '\t' + str(hdusage) + '% of ' + storage + '\t' + status)
+		
+			self.sendLine('{0:11} {1:32} {2:15} {3:4} {4:18} {5:18} {6:10}'.format(sid, hostname, label, cpu, str(ramusage) + '% of ' + ram, str(hdusage) + '% of ' + storage, status))
 
 	def do_poweron(self, serverid):
 		"""poweron: Power on a server. Usage: poweron <serverid>"""
@@ -184,19 +190,23 @@ class CloudAtCostConsole(basic.LineReceiver):
 		
 		servers = self.cac.get_server_info()
 
+		self.sendLine('---------------------------------------------------------------------------------------------------------------------')
+		self.sendLine('{0:11} {1:32} {2:15} {3:15} {4:5} {5:6} {6:7} {7:10}'.format('SID', 'Hostname', 'Label', 'ip', 'CPUs', 'RAM', 'Storage', 'Status'))
+		self.sendLine('---------------------------------------------------------------------------------------------------------------------')
+		
 		for i in range(0, len(servers)):
 			server_data = servers[i]
 			sid         = server_data['sid'].encode('UTF-8')
-			servername  = server_data['servername'].encode('UTF-8')
+			hostname    = server_data['hostname'].encode('UTF-8')
 			label       = server_data['lable'].encode('UTF-8') # spelling error "lable" in cac api
 			ip          = server_data['ip'].encode('UTF-8')
-			hostname    = server_data['hostname'].encode('UTF-8')
 			template    = server_data['template'].encode('UTF-8')
 			cpu         = server_data['cpu'].encode('UTF-8')
 			ram         = server_data['ram'].encode('UTF-8')
 			storage     = server_data['storage'].encode('UTF-8')
 			status      = server_data['status'].encode('UTF-8')
-			self.sendLine(sid + '\t' + servername + '\t' + hostname + '\t' + label + '\t' + template + '\t' + cpu + '\t' + ram + '\t' + storage + '\t' + status)
+			
+			self.sendLine('{0:11} {1:32} {2:15} {3:15} {4:5} {5:6} {6:7} {7:10}'.format(sid, hostname, label, ip, cpu, ram, storage, status))
 			
 	def do_whoami(self):
 		"""whoami: Display current account being used for queries"""

@@ -3,10 +3,12 @@
 # See LICENSE for details
 # Cloud At Cost Console
 
-from twisted.internet import stdio, reactor
-from twisted.protocols import basic
 import os
 import time
+from twisted.internet import stdio, reactor
+from twisted.protocols import basic
+from twisted.python import log
+
 import sqlite3 as lite
 import CACPy # https://github.com/adc4392/python-cloudatcost
 
@@ -122,6 +124,7 @@ class CloudAtCostConsole(basic.LineReceiver):
 				taskid = power['taskid']
 				result = power['result'].encode('UTF-8')
 				
+				log.msg('Server poweron. sid ' + serverid)
 				self.sendLine(action + ': ' + result + '(taskid: ' + str(taskid) + ')')
 				
 			else:
@@ -149,6 +152,7 @@ class CloudAtCostConsole(basic.LineReceiver):
 				taskid = power['taskid']
 				result = power['result'].encode('UTF-8')
 			
+				log.msg('Server poweron. sid ' + serverid)
 				self.sendLine(action + ': ' + result + '(taskid: ' + str(taskid) + ')')
 				time.sleep(1) # give CaC API a break before continuing
 			
@@ -174,6 +178,7 @@ class CloudAtCostConsole(basic.LineReceiver):
 				taskid = power['taskid']
 				result = power['result'].encode('UTF-8')
 				
+				log.msg('Server poweroff. sid ' + serverid)
 				self.sendLine(action + ': ' + result + '(taskid: ' + str(taskid) + ')')
 				
 			else:
@@ -201,6 +206,7 @@ class CloudAtCostConsole(basic.LineReceiver):
 				taskid = power['taskid']
 				result = power['result'].encode('UTF-8')
 		
+				log.msg('Server poweroff. sid ' + serverid)
 				self.sendLine(action + ': ' + result + '(taskid: ' + str(taskid) + ')')
 				time.sleep(1) # give CaC API a break before continuing
 		
@@ -226,6 +232,7 @@ class CloudAtCostConsole(basic.LineReceiver):
 				taskid = power['taskid']
 				result = power['result'].encode('UTF-8')
 				
+				log.msg('Server reset. sid ' + serverid)
 				self.sendLine(action + ': ' + result + '(taskid: ' + str(taskid) + ')')
 				
 			else:
@@ -253,6 +260,7 @@ class CloudAtCostConsole(basic.LineReceiver):
 				taskid = power['taskid']
 				result = power['result'].encode('UTF-8')
 		
+				log.msg('Server reset. sid ' + serverid)
 				self.sendLine(action + ': ' + result + '(taskid: ' + str(taskid) + ')')
 				time.sleep(1) # give CaC API a break before continuing
 		
@@ -342,6 +350,7 @@ class CloudAtCostConsole(basic.LineReceiver):
 				self.using = [row[0], row[1]]
 				self.cac   = CACPy.CACPy(self.using[0], self.using[1])
 			
+			log.msg('Changed account ' + email)
 			self.sendLine('Now using ' + email)
 
 	def do_del_account(self, email):
@@ -355,6 +364,7 @@ class CloudAtCostConsole(basic.LineReceiver):
 			if email == self.using[0]:
 				self.using = []
 		
+		log.msg('Deleted account for ' + email)
 		self.sendLine('Deleted! I hope you were sure because this cannot be undone.')
 		
 	def do_add_account(self, email, apikey):
@@ -363,6 +373,7 @@ class CloudAtCostConsole(basic.LineReceiver):
 		params = [email, apikey]
 		self.cursor.execute("INSERT INTO accounts VALUES (?, ?)", params)
 		self.db.commit()
+		log.msg('Added account for ' + email)
 		self.sendLine('Done!')
 	
 	def do_list_accounts(self):
@@ -386,9 +397,11 @@ class CloudAtCostConsole(basic.LineReceiver):
 	
 	def do_quit(self):
 		"""quit: Quit CloudAtCostConsole"""
+		log.msg('Quiters gonna quit!')
 		self.sendLine('Goodbye.')
 		self.transport.loseConnection()
 
 	def connectionLost(self, reason):
-		# stop the reactor, only because this is meant to be run in Stdio.
+		# stop the reactor
+		log.msg('Connection lost! Shutting down reactor.')
 		reactor.stop()

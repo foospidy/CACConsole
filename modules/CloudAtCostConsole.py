@@ -5,6 +5,8 @@
 
 from twisted.internet import stdio, reactor
 from twisted.protocols import basic
+import os
+import time
 import sqlite3 as lite
 import CACPy # https://github.com/adc4392/python-cloudatcost
 
@@ -56,7 +58,25 @@ class CloudAtCostConsole(basic.LineReceiver):
 			self.sendLine("Valid commands:\n\t" +"\n\t".join(commands))
 			self.sendLine('Type "help [command]" for more info.')
 
-	def do_usage(self, serverid=0):
+	def do_ping(self, serverid):
+		"""ping: Ping a server. Usage: ping [<serverid>|all] """
+		if not self.using:
+			self.sendLine('No account selected! Type: help use')
+			return
+		
+		servers = self.cac.get_server_info()
+
+		for i in range(0, len(servers)):
+			server_data = servers[i]
+			sid         = server_data['sid'].encode('UTF-8')
+			ip          = server_data['ip'].encode('UTF-8')
+			
+			if 'all' == serverid:
+				response = os.system('ping -c 3 ' + ip)
+			elif serverid == sid:
+				response = os.system('ping -c 3 ' + ip)
+
+	def do_usage(self):
 		"""usage: Show server(s) utilization"""
 		if not self.using:
 			self.sendLine('No account selected! Type: help use')
@@ -86,67 +106,160 @@ class CloudAtCostConsole(basic.LineReceiver):
 			self.sendLine('{0:11} {1:32} {2:15} {3:4} {4:18} {5:18} {6:10}'.format(sid, hostname, label, cpu, str(ramusage) + '% of ' + ram, str(hdusage) + '% of ' + storage, status))
 
 	def do_poweron(self, serverid):
-		"""poweron: Power on a server. Usage: poweron <serverid>"""
+		"""poweron: Power on a server or all servers. Usage: poweron [<serverid>|all]"""
 		if not self.using:
 			self.sendLine('No account selected! Type: help use')
 			return
 		
-		power  = self.cac.power_on_server(serverid)
-		status = power['status'].encode('UTF-8')
-		
-		if 'ok' == status:
-			action = power['action'].encode('UTF-8')
-			taskid = power['taskid']
-			result = power['result'].encode('UTF-8')
-			
-			self.sendLine(action + ': ' + result + '(taskid: ' + str(taskid) + ')')
-			
+		if 'all' == serverid:
+			_poweron_all()
 		else:
-			error_description = power['error_description'].encode('UTF-8')
+			power  = self.cac.power_on_server(serverid)
+			status = power['status'].encode('UTF-8')
 			
-			self.sendLine(status + ': ' + error_description)
+			if 'ok' == status:
+				action = power['action'].encode('UTF-8')
+				taskid = power['taskid']
+				result = power['result'].encode('UTF-8')
+				
+				self.sendLine(action + ': ' + result + '(taskid: ' + str(taskid) + ')')
+				
+			else:
+				error_description = power['error_description'].encode('UTF-8')
+				
+				self.sendLine(status + ': ' + error_description)
+	
+	def _poweron_all(self):
+		"""_poweron_all: Power on all servers."""
+		if not self.using:
+			self.sendLine('No account selected! Type: help use')
+			return
+		
+		servers = self.cac.get_server_info()
+
+		for i in range(0, len(servers)):
+			server_data = servers[i]
+			serverid    = server_data['sid'].encode('UTF-8')
+
+			power  = self.cac.power_on_server(serverid)
+			status = power['status'].encode('UTF-8')
+		
+			if 'ok' == status:
+				action = power['action'].encode('UTF-8')
+				taskid = power['taskid']
+				result = power['result'].encode('UTF-8')
+			
+				self.sendLine(action + ': ' + result + '(taskid: ' + str(taskid) + ')')
+				time.sleep(1) # give CaC API a break before continuing
+			
+			else:
+				error_description = power['error_description'].encode('UTF-8')
+				
+				self.sendLine(status + ': ' + error_description)
 		
 	def do_poweroff(self, serverid):
-		"""poweroff: Power off a server. Usage: poweroff <serverid>"""
+		"""poweroff: Power off a server or all servers. Usage: poweroff [<serverid>|all]"""
 		if not self.using:
 			self.sendLine('No account selected! Type: help use')
 			return
 		
-		power  = self.cac.power_off_server(serverid)
-		status = power['status'].encode('UTF-8')
-		
-		if 'ok' == status:
-			action = power['action'].encode('UTF-8')
-			taskid = power['taskid']
-			result = power['result'].encode('UTF-8')
-			
-			self.sendLine(action + ': ' + result + '(taskid: ' + str(taskid) + ')')
-			
+		if 'all' == serverid:
+			_poweroff_all()
 		else:
-			error_description = power['error_description'].encode('UTF-8')
+			power  = self.cac.power_off_server(serverid)
+			status = power['status'].encode('UTF-8')
 			
-			self.sendLine(status + ': ' + error_description)
+			if 'ok' == status:
+				action = power['action'].encode('UTF-8')
+				taskid = power['taskid']
+				result = power['result'].encode('UTF-8')
+				
+				self.sendLine(action + ': ' + result + '(taskid: ' + str(taskid) + ')')
+				
+			else:
+				error_description = power['error_description'].encode('UTF-8')
+				
+				self.sendLine(status + ': ' + error_description)
+	
+	def _poweroff_all(self):
+		"""_poweroff_all: Power off all servers."""
+		if not self.using:
+			self.sendLine('No account selected! Type: help use')
+			return
+	
+		servers = self.cac.get_server_info()
+
+		for i in range(0, len(servers)):
+			server_data = servers[i]
+			serverid    = server_data['sid'].encode('UTF-8')
+
+			power  = self.cac.power_off_server(serverid)
+			status = power['status'].encode('UTF-8')
+	
+			if 'ok' == status:
+				action = power['action'].encode('UTF-8')
+				taskid = power['taskid']
+				result = power['result'].encode('UTF-8')
+		
+				self.sendLine(action + ': ' + result + '(taskid: ' + str(taskid) + ')')
+				time.sleep(1) # give CaC API a break before continuing
+		
+			else:
+				error_description = power['error_description'].encode('UTF-8')
+			
+				self.sendLine(status + ': ' + error_description)
 	
 	def do_reset(self, serverid):
-		"""reset: Restart a server. Usage: reset <serverid>"""
+		"""reset: Restart a server or all servers. Usage: reset [<serverid>|all]"""
 		if not self.using:
 			self.sendLine('No account selected! Type: help use')
 			return
 	
-		power  = self.cac.reset_server(serverid)
-		status = power['status'].encode('UTF-8')
-		
-		if 'ok' == status:
-			action = power['action'].encode('UTF-8')
-			taskid = power['taskid']
-			result = power['result'].encode('UTF-8')
-			
-			self.sendLine(action + ': ' + result + '(taskid: ' + str(taskid) + ')')
-			
+		if 'all' == serverid:
+			_reset_all()
 		else:
-			error_description = power['error_description'].encode('UTF-8')
+			power  = self.cac.reset_server(serverid)
+			status = power['status'].encode('UTF-8')
 			
-			self.sendLine(status + ': ' + error_description)
+			if 'ok' == status:
+				action = power['action'].encode('UTF-8')
+				taskid = power['taskid']
+				result = power['result'].encode('UTF-8')
+				
+				self.sendLine(action + ': ' + result + '(taskid: ' + str(taskid) + ')')
+				
+			else:
+				error_description = power['error_description'].encode('UTF-8')
+				
+				self.sendLine(status + ': ' + error_description)
+	
+	def _reset_all(self):
+		"""_reset_all: Restart all servers."""
+		if not self.using:
+			self.sendLine('No account selected! Type: help use')
+			return
+	
+		servers = self.cac.get_server_info()
+
+		for i in range(0, len(servers)):
+			server_data = servers[i]
+			serverid    = server_data['sid'].encode('UTF-8')
+
+			power  = self.cac.reset_server(serverid)
+			status = power['status'].encode('UTF-8')
+	
+			if 'ok' == status:
+				action = power['action'].encode('UTF-8')
+				taskid = power['taskid']
+				result = power['result'].encode('UTF-8')
+		
+				self.sendLine(action + ': ' + result + '(taskid: ' + str(taskid) + ')')
+				time.sleep(1) # give CaC API a break before continuing
+		
+			else:
+				error_description = power['error_description'].encode('UTF-8')
+			
+				self.sendLine(status + ': ' + error_description)
 	
 	def do_list_tasks(self):
 		"""list_tasks: List all tasks in operation"""
@@ -216,7 +329,7 @@ class CloudAtCostConsole(basic.LineReceiver):
 			self.sendLine('You are currently nobody. Cheer up, you\'ll be somebody someday.')
 
 	def do_use(self, email):
-		"""use: Select an account to use for API calls."""
+		"""use: Select an account to use for API calls. Usage: use <account>"""
 		params = [email]
 		self.cursor.execute("SELECT account, apikey FROM accounts WHERE account=?", params)
 		

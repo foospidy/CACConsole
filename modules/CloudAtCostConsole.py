@@ -8,7 +8,6 @@ import time
 from twisted.internet import stdio, reactor
 from twisted.protocols import basic
 from twisted.python import log
-
 import sqlite3 as lite
 import CACPy # https://github.com/adc4392/python-cloudatcost
 
@@ -60,6 +59,8 @@ class CloudAtCostConsole(basic.LineReceiver):
 			self.sendLine("Valid commands:\n\t" +"\n\t".join(commands))
 			self.sendLine('Type "help [command]" for more info.')
 
+	### utilities ####################
+	
 	def do_ping(self, serverid):
 		"""ping: Ping a server. Usage: ping [<serverid>|all] """
 		if not self.using:
@@ -107,6 +108,8 @@ class CloudAtCostConsole(basic.LineReceiver):
 		
 			self.sendLine('{0:11} {1:32} {2:15} {3:4} {4:18} {5:18} {6:10}'.format(sid, hostname, label, cpu, str(ramusage) + '% of ' + ram, str(hdusage) + '% of ' + storage, status))
 
+	### power ####################
+	
 	def do_poweron(self, serverid):
 		"""poweron: Power on a server or all servers. Usage: poweron [<serverid>|all]"""
 		if not self.using:
@@ -269,8 +272,21 @@ class CloudAtCostConsole(basic.LineReceiver):
 			
 				self.sendLine(status + ': ' + error_description)
 	
-	def do_list_tasks(self):
-		"""list_tasks: List all tasks in operation"""
+	### List ####################
+
+	def do_list(self, list='servers'):
+			"""list: List information. Usage: list [accounts|servers|tasks|templates]"""
+			if 'accounts' == list:
+				self._list_accounts()
+			elif 'tasks' == list:
+				self._list_tasks()
+			elif 'templates' == list:
+				self._list_templates()
+			else:
+				self._list_servers()
+
+	def _list_tasks(self):
+		"""_list_tasks: List all tasks in operation"""
 		if not self.using:
 			self.sendLine('No account selected! Type: help use')
 			return
@@ -288,8 +304,8 @@ class CloudAtCostConsole(basic.LineReceiver):
 
 			self.sendLine(serverid + '\t' + action + '\t' + status)
 
-	def do_list_templates(self):
-		"""list_templates: List all templates available"""
+	def _list_templates(self):
+		"""_list_templates: List all templates available"""
 		if not self.using:
 			self.sendLine('No account selected! Type: help use')
 			return
@@ -303,8 +319,8 @@ class CloudAtCostConsole(basic.LineReceiver):
 
 			self.sendLine(id + '\t' + detail)
 
-	def do_list_servers(self):
-		"""list_servers: List all servers on the account"""
+	def _list_servers(self):
+		"""_list_servers: List all servers on the account"""
 		if not self.using:
 			self.sendLine('No account selected! Type: help use')
 			return
@@ -328,7 +344,9 @@ class CloudAtCostConsole(basic.LineReceiver):
 			status      = server_data['status'].encode('UTF-8')
 			
 			self.sendLine('{0:11} {1:32} {2:15} {3:15} {4:5} {5:6} {6:7} {7:10}'.format(sid, hostname, label, ip, cpu, ram, storage, status))
-			
+
+	### account ####################
+	
 	def do_whoami(self):
 		"""whoami: Display current account being used for queries"""
 		if self.using:
@@ -376,7 +394,7 @@ class CloudAtCostConsole(basic.LineReceiver):
 		log.msg('Added account for ' + email)
 		self.sendLine('Done!')
 	
-	def do_list_accounts(self):
+	def _list_accounts(self):
 		"""list_accounts: List all configured services"""
 		self.cursor.execute("SELECT account FROM accounts;")
 		

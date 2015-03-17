@@ -14,11 +14,10 @@ import CACPy # https://github.com/adc4392/python-cloudatcost
 class CloudAtCostConsole(basic.LineReceiver):
 	from os import linesep as delimiter
 
-	def __init__(self, dbfile, logfile):
+	def __init__(self, dbfile):
 		self.dbfile = dbfile
 		self.db     = lite.connect(self.dbfile)
 		self.cursor = self.db.cursor()
-		self.logfile = logfile
 		self.using  = []
 		self.cac    = None
 		
@@ -79,14 +78,6 @@ class CloudAtCostConsole(basic.LineReceiver):
 				response = os.system('ping -c 3 ' + ip)
 			elif serverid == sid:
 				response = os.system('ping -c 3 ' + ip)
-
-	def do_log(self):
-		"""ping: Ping a server. Usage: ping [<serverid>|all] """
-		if not self.using:
-			self.sendLine('No account selected! Type: help use')
-			return
-			
-			response = os.system('less ' + self.logfile)
 
 	def do_usage(self):
 		"""usage: Show server(s) utilization"""

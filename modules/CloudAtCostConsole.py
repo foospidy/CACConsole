@@ -14,10 +14,11 @@ import CACPy # https://github.com/adc4392/python-cloudatcost
 class CloudAtCostConsole(basic.LineReceiver):
 	from os import linesep as delimiter
 
-	def __init__(self, dbfile):
+	def __init__(self, dbfile, logfile):
 		self.dbfile = dbfile
 		self.db     = lite.connect(self.dbfile)
 		self.cursor = self.db.cursor()
+		self.logfile = logfile
 		self.using  = []
 		self.cac    = None
 		
@@ -79,6 +80,14 @@ class CloudAtCostConsole(basic.LineReceiver):
 			elif serverid == sid:
 				response = os.system('ping -c 3 ' + ip)
 
+	def do_log(self):
+		"""ping: Ping a server. Usage: ping [<serverid>|all] """
+		if not self.using:
+			self.sendLine('No account selected! Type: help use')
+			return
+			
+			response = os.system('less ' + self.logfile)
+
 	def do_usage(self):
 		"""usage: Show server(s) utilization"""
 		if not self.using:
@@ -94,20 +103,24 @@ class CloudAtCostConsole(basic.LineReceiver):
 
 		for i in range(0, len(servers)):
 			server_data = servers[i]
-			sid         = server_data['sid'].encode('UTF-8')
-			label       = server_data['lable'].encode('UTF-8') # spelling error "lable" in cac api
-			hostname    = server_data['hostname'].encode('UTF-8')
-			template    = server_data['template'].encode('UTF-8')
-			cpu         = server_data['cpu'].encode('UTF-8')
-			cpuusage    = server_data['cpuusage'].encode('UTF-8')
-			ram         = server_data['ram'].encode('UTF-8')
-			ramusage    = round(float(server_data['ramusage']) / int(server_data['ram']) * 100, 2)
-			storage     = server_data['storage'].encode('UTF-8')
-			hdusage     = round(float(server_data['hdusage']) / int(server_data['storage']) * 100, 2)
-			status      = server_data['status'].encode('UTF-8')
+			
+			try:
+				sid         = server_data['sid'].encode('UTF-8')
+				label       = server_data['lable'].encode('UTF-8') # spelling error "lable" in cac api
+				hostname    = server_data['hostname'].encode('UTF-8')
+				template    = server_data['template'].encode('UTF-8')
+				cpu         = server_data['cpu'].encode('UTF-8')
+				cpuusage    = server_data['cpuusage'].encode('UTF-8')
+				ram         = server_data['ram'].encode('UTF-8')
+				ramusage    = round(float(server_data['ramusage']) / int(server_data['ram']) * 100, 2)
+				storage     = server_data['storage'].encode('UTF-8')
+				hdusage     = round(float(server_data['hdusage']) / int(server_data['storage']) * 100, 2)
+				status      = server_data['status'].encode('UTF-8')
 		
-			self.sendLine('{0:11} {1:32} {2:15} {3:4} {4:18} {5:18} {6:10}'.format(sid, hostname, label, cpu, str(ramusage) + '% of ' + ram, str(hdusage) + '% of ' + storage, status))
-
+				self.sendLine('{0:11} {1:32} {2:15} {3:4} {4:18} {5:18} {6:10}'.format(sid, hostname, label, cpu, str(ramusage) + '% of ' + ram, str(hdusage) + '% of ' + storage, status))
+			except Exception as e:
+				self.sendLine('Error reading host information, perhaps server is re-imaging?')
+				
 	### power ####################
 	
 	def do_poweron(self, serverid):
@@ -333,18 +346,22 @@ class CloudAtCostConsole(basic.LineReceiver):
 		
 		for i in range(0, len(servers)):
 			server_data = servers[i]
-			sid         = server_data['sid'].encode('UTF-8')
-			hostname    = server_data['hostname'].encode('UTF-8')
-			label       = server_data['lable'].encode('UTF-8') # spelling error "lable" in cac api
-			ip          = server_data['ip'].encode('UTF-8')
-			template    = server_data['template'].encode('UTF-8')
-			cpu         = server_data['cpu'].encode('UTF-8')
-			ram         = server_data['ram'].encode('UTF-8')
-			storage     = server_data['storage'].encode('UTF-8')
-			status      = server_data['status'].encode('UTF-8')
 			
-			self.sendLine('{0:11} {1:32} {2:15} {3:15} {4:5} {5:6} {6:7} {7:10}'.format(sid, hostname, label, ip, cpu, ram, storage, status))
-
+			try:
+				sid         = server_data['sid'].encode('UTF-8')
+				hostname    = server_data['hostname'].encode('UTF-8')
+				label       = server_data['lable'].encode('UTF-8') # spelling error "lable" in cac api
+				ip          = server_data['ip'].encode('UTF-8')
+				template    = server_data['template'].encode('UTF-8')
+				cpu         = server_data['cpu'].encode('UTF-8')
+				ram         = server_data['ram'].encode('UTF-8')
+				storage     = server_data['storage'].encode('UTF-8')
+				status      = server_data['status'].encode('UTF-8')
+			
+				self.sendLine('{0:11} {1:32} {2:15} {3:15} {4:5} {5:6} {6:7} {7:10}'.format(sid, hostname, label, ip, cpu, ram, storage, status))
+			except Exception as e:
+				self.sendLine('Error reading host information, perhaps server is re-imaging?')
+			
 	### account ####################
 	
 	def do_whoami(self):

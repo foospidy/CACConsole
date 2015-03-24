@@ -310,11 +310,11 @@ class CloudAtCostConsole(basic.LineReceiver):
 			self.sendLine('Error: ' + tasks['error_description'].encode('UTF-8'))
 			return
 
-		if 0 == len(tasks):
+		if 0 == len(tasks['data']):
 			self.sendLine('No current tasks')
 
-		for i in range(0, len(tasks)):
-			task_data = tasks[i]
+		for i in range(0, len(tasks['data'])):
+			task_data = tasks['data'][i]
 			serverid  = task_data['serverid'].encode('UTF-8')
 			action    = task_data['action'].encode('UTF-8')
 			status    = task_data['status'].encode('UTF-8')
@@ -333,8 +333,8 @@ class CloudAtCostConsole(basic.LineReceiver):
 			self.sendLine('Error: ' + templates['error_description'].encode('UTF-8'))
 			return
 
-		for i in range(0, len(templates)):
-			template_data = templates[i]
+		for i in range(0, len(templates['data'])):
+			template_data = templates['data'][i]
 			id           = template_data['id'].encode('UTF-8')
 			detail       = template_data['detail'].encode('UTF-8')
 

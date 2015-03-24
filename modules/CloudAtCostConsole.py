@@ -86,14 +86,18 @@ class CloudAtCostConsole(basic.LineReceiver):
 			return
 		
 		servers = self.cac.get_server_info()
+		
+		if 'error' == servers['status']:
+			self.sendLine('Error: ' + servers['error_description'].encode('UTF-8'))
+			return
 
 		self.sendLine('---------------------------------------------------------------------------------------------------------------------')
 		#self.sendLine('sid   hostname    label   template  CPUs  RAM  Disk  Status')
 		self.sendLine('{0:11} {1:32} {2:15} {3:4} {4:18} {5:18} {6:10}'.format('SID', 'Hostname', 'Label', 'CPUs', 'RAM', 'Storage', 'Status'))
 		self.sendLine('---------------------------------------------------------------------------------------------------------------------')
 
-		for i in range(0, len(servers)):
-			server_data = servers[i]
+		for i in range(0, len(servers['data'])):
+			server_data = servers['data'][i]
 			
 			try:
 				sid         = server_data['sid'].encode('UTF-8')
@@ -112,11 +116,11 @@ class CloudAtCostConsole(basic.LineReceiver):
 				self.sendLine('{0:11} {1:32} {2:15} {3:4} {4:18} {5:18} {6:10}'.format(sid, hostname, label, cpu, str(ramusage) + '% of ' + ram, str(hdusage) + '% of ' + storage, status))
 			except Exception as e:
 				self.sendLine('Error reading host information, perhaps server is re-imaging?')
-	
+
 	def do_bash(self):
 		"""bash: Drop to bash shell. Type 'exit' to return to CACConsole"""
 		response = os.system('/bin/bash')
-
+				
 	### power ####################
 	
 	def do_poweron(self, serverid):
@@ -302,6 +306,10 @@ class CloudAtCostConsole(basic.LineReceiver):
 		
 		tasks = self.cac.get_task_info()
 		
+		if 'error' == tasks['status']:
+			self.sendLine('Error: ' + tasks['error_description'].encode('UTF-8'))
+			return
+
 		if 0 == len(tasks):
 			self.sendLine('No current tasks')
 
@@ -321,6 +329,10 @@ class CloudAtCostConsole(basic.LineReceiver):
 		
 		templates = self.cac.get_template_info()
 
+		if 'error' == templates['status']:
+			self.sendLine('Error: ' + templates['error_description'].encode('UTF-8'))
+			return
+
 		for i in range(0, len(templates)):
 			template_data = templates[i]
 			id           = template_data['id'].encode('UTF-8')
@@ -335,13 +347,17 @@ class CloudAtCostConsole(basic.LineReceiver):
 			return
 		
 		servers = self.cac.get_server_info()
-
+		
+		if 'error' == servers['status']:
+			self.sendLine('Error: ' + servers['error_description'].encode('UTF-8'))
+			return
+		
 		self.sendLine('---------------------------------------------------------------------------------------------------------------------')
 		self.sendLine('{0:11} {1:32} {2:15} {3:15} {4:5} {5:6} {6:7} {7:10}'.format('SID', 'Hostname', 'Label', 'ip', 'CPUs', 'RAM', 'Storage', 'Status'))
 		self.sendLine('---------------------------------------------------------------------------------------------------------------------')
 		
-		for i in range(0, len(servers)):
-			server_data = servers[i]
+		for i in range(0, len(servers['data'])):
+			server_data = servers['data'][i]
 			
 			try:
 				sid         = server_data['sid'].encode('UTF-8')

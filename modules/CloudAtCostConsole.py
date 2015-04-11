@@ -398,6 +398,28 @@ class CloudAtCostConsole(basic.LineReceiver):
 			log.msg('Rename server: ' + msg)
 			self.sendLine(msg)
 	
+	def do_rdns(self, serverid, hostname):
+		"""rdns: Modify the reverse DNS & hostname of the VPS. Usage: rdns <serverid> <hostname>"""
+		if not self.using:
+			self.sendLine('No account selected! Type: help use')
+			return
+		
+		rdns   = self.cac.modify_reverse_dns(serverid, hostname)
+		status = rdns['status'].encode('UTF-8')
+			
+		if 'ok' == status:
+			msg = 'Server with sid ' + serverid + ' modified reverse DNS and hostname to ' + hostname
+			
+			log.msg(msg)
+			self.sendLine(msg)
+			
+		else:
+			error_description = rdns['error_description'].encode('UTF-8')
+			msg               = status + ': ' + error_description + ': ' + serverid
+			
+			log.msg('Modify reverse DNS: ' + msg)
+			self.sendLine(msg)
+	
 	### account ####################
 	
 	def do_whoami(self):

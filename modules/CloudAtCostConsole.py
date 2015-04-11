@@ -101,8 +101,8 @@ class CloudAtCostConsole(basic.LineReceiver):
 			
 			try:
 				sid         = server_data['sid'].encode('UTF-8')
-				if server_data['lable'] is not None:
-					label       = server_data['lable'].encode('UTF-8') # spelling error "lable" in cac api
+				if server_data['label'] is not None:
+					label       = server_data['label'].encode('UTF-8') # spelling error "label" in cac api
 				hostname    = server_data['hostname'].encode('UTF-8')
 				template    = server_data['template'].encode('UTF-8')
 				cpu         = server_data['cpu'].encode('UTF-8')
@@ -362,8 +362,8 @@ class CloudAtCostConsole(basic.LineReceiver):
 			try:
 				sid         = server_data['sid'].encode('UTF-8')
 				hostname    = server_data['hostname'].encode('UTF-8')
-				if server_data['lable'] is not None:
-					label       = server_data['lable'].encode('UTF-8') # spelling error "lable" in cac api
+				if server_data['label'] is not None:
+					label       = server_data['label'].encode('UTF-8') # spelling error "label" in cac api
 				ip          = server_data['ip'].encode('UTF-8')
 				template    = server_data['template'].encode('UTF-8')
 				cpu         = server_data['cpu'].encode('UTF-8')

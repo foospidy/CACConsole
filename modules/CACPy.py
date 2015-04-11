@@ -10,6 +10,7 @@ LIST_TEMPLATES_URL = "/listtemplates.php"
 LIST_TASKS_URL = "/listtasks.php"
 POWER_OPERATIONS_URL = "/powerop.php"
 RENAME_SERVER_URL = "/renameserver.php"
+MODIFY_REVERSE_DNS = "/rdns.php"
 CONSOLE_URL = "/console.php"
 
 
@@ -135,7 +136,7 @@ class CACPy:
 
         The return value will be a dictionary that will contain keys consistent
         with the JSON as documented here:
-        https://github.com/cloudatcost/api#power-operations
+        https://github.com/cloudatcost/api#rename-server
         """
         options = {
                 'sid': server_id,
@@ -144,7 +145,28 @@ class CACPy:
         return self._make_request(RENAME_SERVER_URL,
                                   options=options,
                                   type="POST")
-		
+
+    def modify_reverse_dns(self, server_id, hostname):
+        """Modify the reverse DNS & hostname of the VPS.
+
+        Required Arguments:
+        server_id - The unique ID associated with the server rdns/hostname to be modified.
+                    Specified by the 'sid' key returned by the get_server_info
+
+        hostname - The new hostname to be applied to the server.
+
+        The return value will be a dictionary that will contain keys consistent
+        with the JSON as documented here:
+        https://github.com/cloudatcost/api#modify-reverse-dns
+        """
+        options = {
+                'sid': server_id,
+                'hostname': hostname
+        }
+        return self._make_request(MODIFY_REVERSE_DNS,
+                                  options=options,
+                                  type="POST")
+								  
     def get_console_url(self, server_id):
         """Return the URL to the web console for the server specified.
 

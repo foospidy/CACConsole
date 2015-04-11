@@ -9,6 +9,7 @@ LIST_SERVERS_URL = "/listservers.php"
 LIST_TEMPLATES_URL = "/listtemplates.php"
 LIST_TASKS_URL = "/listtasks.php"
 POWER_OPERATIONS_URL = "/powerop.php"
+RENAME_SERVER_URL = "/renameserver.php"
 CONSOLE_URL = "/console.php"
 
 
@@ -122,7 +123,28 @@ class CACPy:
         https://github.com/cloudatcost/api#power-operations
         """
         return self._commit_power_operation(server_id, 'reset')
+		
+    def rename_server(self, server_id, name):
+        """Rename the server label.
 
+        Required Arguments:
+        server_id - The unique ID associated with the server to be renamed.
+                    Specified by the 'sid' key returned by the get_server_info
+
+        name - The new label name to be applied to the server.
+
+        The return value will be a dictionary that will contain keys consistent
+        with the JSON as documented here:
+        https://github.com/cloudatcost/api#power-operations
+        """
+        options = {
+                'sid': server_id,
+                'name': name
+        }
+        return self._make_request(RENAME_SERVER_URL,
+                                  options=options,
+                                  type="POST")
+		
     def get_console_url(self, server_id):
         """Return the URL to the web console for the server specified.
 

@@ -92,7 +92,6 @@ class CloudAtCostConsole(basic.LineReceiver):
 			return
 
 		self.sendLine('---------------------------------------------------------------------------------------------------------------------')
-		#self.sendLine('sid   hostname    label   template  CPUs  RAM  Disk  Status')
 		self.sendLine('{0:11} {1:32} {2:15} {3:4} {4:18} {5:18} {6:10}'.format('SID', 'Hostname', 'Label', 'CPUs', 'RAM', 'Storage', 'Status'))
 		self.sendLine('---------------------------------------------------------------------------------------------------------------------')
 
@@ -375,6 +374,30 @@ class CloudAtCostConsole(basic.LineReceiver):
 			except Exception as e:
 				self.sendLine('Error reading host information, perhaps server is re-imaging?')
 			
+	### server management ####################
+	
+	def do_rename(self, serverid, name):
+		"""rename: Change the label for a server. Usage: rename <serverid> <name>"""
+		if not self.using:
+			self.sendLine('No account selected! Type: help use')
+			return
+		
+		rename = self.cac.rename_server(serverid, name)
+		status = rename['status'].encode('UTF-8')
+			
+		if 'ok' == status:
+			msg = 'Server with sid ' + serverid + ' renamed to ' + name
+			
+			log.msg(msg)
+			self.sendLine(msg)
+			
+		else:
+			error_description = rename['error_description'].encode('UTF-8')
+			msg               = status + ': ' + error_description + ': ' + serverid
+			
+			log.msg('Rename server: ' + msg)
+			self.sendLine(msg)
+	
 	### account ####################
 	
 	def do_whoami(self):

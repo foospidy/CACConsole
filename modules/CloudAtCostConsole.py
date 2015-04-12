@@ -404,7 +404,7 @@ class CloudAtCostConsole(basic.LineReceiver):
 			self.sendLine('No account selected! Type: help use')
 			return
 		
-		rdns   = self.cac.modify_reverse_dns(serverid, hostname)
+		rdns   = self.cac.change_hostname(serverid, hostname)
 		status = rdns['status'].encode('UTF-8')
 			
 		if 'ok' == status:

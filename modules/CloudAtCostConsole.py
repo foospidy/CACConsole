@@ -116,7 +116,7 @@ class CloudAtCostConsole(basic.LineReceiver):
 		
 				self.sendLine('{0:11} {1:32} {2:15} {3:4} {4:18} {5:18} {6:10}'.format(sid, hostname, label, cpu, str(ramusage) + '% of ' + ram, str(hdusage) + '% of ' + storage, status))
 			except Exception as e:
-				self.sendLine('Error reading host information, perhaps server is re-imaging?')
+				self.sendLine('Error reading host information, perhaps server is re-imaging or powered off?')
 
 	def do_bash(self):
 		"""bash: Drop to bash shell. Type 'exit' to return to CACConsole"""

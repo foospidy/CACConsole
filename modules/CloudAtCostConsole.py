@@ -9,7 +9,7 @@ from twisted.internet import stdio, reactor
 from twisted.protocols import basic
 from twisted.python import log
 import sqlite3 as lite
-import CACPy # https://github.com/adc4392/python-cloudatcost
+import cacpy as CACPy
 
 class CloudAtCostConsole(basic.LineReceiver):
 	from os import linesep as delimiter

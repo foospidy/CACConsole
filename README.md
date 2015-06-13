@@ -51,7 +51,9 @@ CaC>
 ##### python-cloudatcost
 Python library for CaC API (https://github.com/adc4392/python-cloudatcost)
 
-This library is alredy included in CACConsole's modules directory.
+This library is no longer included in the modules directory, you will need to run:
+
+`pip install cacpy`
 
 
 ##### Twisted

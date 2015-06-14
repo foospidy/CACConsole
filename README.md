@@ -28,20 +28,18 @@ Don't forget to whitelist your IP address in your CaC panel settings.
 For help type 'help'.
 CaC>help
 Valid commands:
-        add_account
-        banner
-        bash
-        del_account
-        help
-        list
-        ping
-        poweroff
-        poweron
-        quit
-        reset
-        usage
-        use
-        whoami
+      account
+      banner
+      bash
+      help
+      list
+      ping
+      power
+      quit
+      server
+      usage
+      use
+      whoami
 Type "help [command]" for more info.
 CaC>
 ```

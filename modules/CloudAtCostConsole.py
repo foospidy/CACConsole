@@ -124,14 +124,29 @@ class CloudAtCostConsole(basic.LineReceiver):
 				
 	### power ####################
 	
-	def do_poweron(self, serverid):
-		"""poweron: Power on a server or all servers. Usage: poweron [<serverid>|all]"""
+	def do_power(self, power='none', serverid='none'):
+			"""power: Change power state of server(s). Usage: power [on|off|reset] [serverid|all]"""
+			if 'on' == power:
+				self._power_on(serverid)
+			elif 'off' == power:
+				self._power_off(serverid)
+			elif 'reset' == power:
+				self._power_reset(serverid)
+			else:
+				self.sendLine('Invalid arguments! Usage:')
+				self.do_help('power')
+
+	def _power_on(self, serverid='none'):
+		"""_power_on: Power on a server or all servers. Usage: power on [<serverid>|all]"""
 		if not self.using:
 			self.sendLine('No account selected! Type: help use')
 			return
 		
-		if 'all' == serverid:
-			_poweron_all()
+		if 'none' == serverid:
+			self.sendLine('Invalid arguments! Usage:')
+			self.do_help('power')
+		elif 'all' == serverid:
+			self._power_on_all()
 		else:
 			power  = self.cac.power_on_server(serverid)
 			status = power['status'].encode('UTF-8')
@@ -141,7 +156,7 @@ class CloudAtCostConsole(basic.LineReceiver):
 				taskid = power['taskid']
 				result = power['result'].encode('UTF-8')
 				
-				log.msg('Server poweron. sid ' + serverid)
+				log.msg('Server power on. sid ' + serverid)
 				self.sendLine(action + ': ' + result + '(taskid: ' + str(taskid) + ')')
 				
 			else:
@@ -149,8 +164,8 @@ class CloudAtCostConsole(basic.LineReceiver):
 				
 				self.sendLine(status + ': ' + error_description)
 	
-	def _poweron_all(self):
-		"""_poweron_all: Power on all servers."""
+	def _power_on_all(self):
+		"""_power_on_all: Power on all servers."""
 		if not self.using:
 			self.sendLine('No account selected! Type: help use')
 			return
@@ -178,14 +193,14 @@ class CloudAtCostConsole(basic.LineReceiver):
 				
 				self.sendLine(status + ': ' + error_description)
 		
-	def do_poweroff(self, serverid):
-		"""poweroff: Power off a server or all servers. Usage: poweroff [<serverid>|all]"""
+	def _power_off(self, serverid='none'):
+		"""_power_off: Power off a server or all servers. Usage: power off [<serverid>|all]"""
 		if not self.using:
 			self.sendLine('No account selected! Type: help use')
 			return
 		
 		if 'all' == serverid:
-			_poweroff_all()
+			self._power_off_all()
 		else:
 			power  = self.cac.power_off_server(serverid)
 			status = power['status'].encode('UTF-8')
@@ -203,7 +218,7 @@ class CloudAtCostConsole(basic.LineReceiver):
 				
 				self.sendLine(status + ': ' + error_description)
 	
-	def _poweroff_all(self):
+	def _power_off_all(self):
 		"""_poweroff_all: Power off all servers."""
 		if not self.using:
 			self.sendLine('No account selected! Type: help use')
@@ -232,14 +247,14 @@ class CloudAtCostConsole(basic.LineReceiver):
 			
 				self.sendLine(status + ': ' + error_description)
 	
-	def do_reset(self, serverid):
-		"""reset: Restart a server or all servers. Usage: reset [<serverid>|all]"""
+	def _power_reset(self, serverid='none'):
+		"""reset: Restart a server or all servers. Usage: power reset [<serverid>|all]"""
 		if not self.using:
 			self.sendLine('No account selected! Type: help use')
 			return
 	
 		if 'all' == serverid:
-			_reset_all()
+			self._power_reset_all()
 		else:
 			power  = self.cac.reset_server(serverid)
 			status = power['status'].encode('UTF-8')
@@ -257,7 +272,7 @@ class CloudAtCostConsole(basic.LineReceiver):
 				
 				self.sendLine(status + ': ' + error_description)
 	
-	def _reset_all(self):
+	def _power_reset_all(self):
 		"""_reset_all: Restart all servers."""
 		if not self.using:
 			self.sendLine('No account selected! Type: help use')
@@ -289,16 +304,37 @@ class CloudAtCostConsole(basic.LineReceiver):
 	### List ####################
 
 	def do_list(self, list='servers'):
-			"""list: List information. Usage: list [accounts|servers|tasks|templates]"""
+			"""list: List information. Usage: list [accounts|servers|tasks|templates|resources]"""
 			if 'accounts' == list:
 				self._list_accounts()
 			elif 'tasks' == list:
 				self._list_tasks()
 			elif 'templates' == list:
 				self._list_templates()
+			elif 'resources' == list:
+				self._list_resources()
 			else:
 				self._list_servers()
 
+	def _list_resources(self):
+		""" _list_resources: List CloudPRO resources"""
+		if not self.using:
+			self.sendLine('No account selected! Type: help use')
+			return
+		
+		resources = self.cac.get_resources()
+		
+		if 'error' == resources['status']:
+			self.sendLine('Error: ' + resources['error_description'].encode('UTF-8'))
+			return
+		
+		total = resources['data']['total']
+		used  = resources['data']['used']
+
+		self.sendLine('CPU: ' + str(used['cpu_used']) + ' of ' + str(total['cpu_total']))
+		self.sendLine('RAM: ' + str(used['ram_used']) + ' of ' + str(total['ram_total']))
+		self.sendLine('Storage: ' + str(used['storage_used']) + ' of ' + str(total['storage_total']))
+		
 	def _list_tasks(self):
 		"""_list_tasks: List all tasks in operation"""
 		if not self.using:
@@ -316,9 +352,9 @@ class CloudAtCostConsole(basic.LineReceiver):
 
 		for i in range(0, len(tasks['data'])):
 			task_data = tasks['data'][i]
-			serverid  = task_data['serverid'].encode('UTF-8')
-			action    = task_data['action'].encode('UTF-8')
-			status    = task_data['status'].encode('UTF-8')
+			serverid  = str(task_data['serverid']).encode('UTF-8')
+			action    = str(task_data['action']).encode('UTF-8')
+			status    = str(task_data['status']).encode('UTF-8')
 
 			self.sendLine(serverid + '\t' + action + '\t' + status)
 
@@ -380,7 +416,56 @@ class CloudAtCostConsole(basic.LineReceiver):
 			
 	### server management ####################
 	
-	def do_rename(self, serverid, name):
+	def do_server(self, cmd='none', param1='none', param2='none', param3='none', param4='none'):
+			"""server: Server management.
+			Usage:
+				server [runmode|rename|reversedns|console|build|delete]
+				server runmode <serverid> [normal|safe]
+				server rename <serverid> <name>
+				server reversedns <serverid> <hostname>
+				server console
+				server build <cpu> <ram> <storage> <os>
+					- run 'list templates' to get the os ID.
+				server delete <serverid>
+			"""
+			if 'runmode' == cmd:
+				self._server_runmode(param1, param2)
+			elif 'rename' == cmd:
+				self._server_rename(param1, param2)
+			elif 'reversedns' == cmd:
+				self._server_reversedns(param1, param2)
+			elif 'console' == cmd:
+				self._server_console(param1)
+			elif 'build' == cmd:
+				self._server_build(param1, param2, param3, param4)
+			elif 'delete' == cmd:
+				self._server_delete(param1)
+			else:
+				self.do_help('server')
+	
+	def _server_runmode(self, serverid, new_mode):
+		"""_server_runmode: Change the run mode for a server. Usage: runmode <serverid> [normal|safe]"""
+		if not self.using:
+			self.sendLine('No account selected! Type: help use')
+			return
+		
+		mode   = self.cac.set_run_mode(serverid, new_mode)
+		status = mode['status'].encode('UTF-8')
+		
+		if 'ok' == status:
+			msg = 'Server with sid ' + str(serverid) + ' changed runmode to ' + new_mode
+			
+			log.msg(msg)
+			self.sendLine(msg)
+			
+		else:
+			error_description = mode['error_description'].encode('UTF-8')
+			msg               = status + ': ' + error_description + ': ' + serverid
+			
+			log.msg('Runmode: ' + msg)
+			self.sendLine(msg)
+
+	def _server_rename(self, serverid, name):
 		"""rename: Change the label for a server. Usage: rename <serverid> <name>"""
 		if not self.using:
 			self.sendLine('No account selected! Type: help use')
@@ -402,8 +487,8 @@ class CloudAtCostConsole(basic.LineReceiver):
 			log.msg('Rename server: ' + msg)
 			self.sendLine(msg)
 	
-	def do_rdns(self, serverid, hostname):
-		"""rdns: Modify the reverse DNS & hostname of the VPS. Usage: rdns <serverid> <hostname>"""
+	def _server_reversedns(self, serverid, hostname):
+		"""_server_reversedns: Modify the reverse DNS & hostname of the VPS. Usage: server reversedns <serverid> <hostname>"""
 		if not self.using:
 			self.sendLine('No account selected! Type: help use')
 			return
@@ -422,6 +507,60 @@ class CloudAtCostConsole(basic.LineReceiver):
 			msg               = status + ': ' + error_description + ': ' + serverid
 			
 			log.msg('Modify reverse DNS: ' + msg)
+			self.sendLine(msg)
+
+	def _server_console(self, serverid):
+		if not self.using:
+			self.sendLine('No account selected! Type: help use')
+			return
+		
+		console    = self.cac.get_console_url(serverid)
+		self.sendLine(console.encode('UTF-8'))
+	
+	def _server_build(self, cpu='none', ram='none', storage='none', os='none'):
+		"""_server_build: Build a server. Usage: server build <cpu> <ram> <storage> <os>"""
+		if not self.using:
+			self.sendLine('No account selected! Type: help use')
+			return
+		
+		server = self.cac.server_build(cpu, ram, storage, os)
+		status = server['status'].encode('UTF-8')
+		
+		if 'ok' == status:
+			taskid = server['taskid']
+			msg    = 'Server created! Task ID (' + str(taskid) + ')'
+			
+			log.msg(msg)
+			self.sendLine(msg)
+			
+		else:
+			error_description = server['error_description'].encode('UTF-8')
+			msg               = status + ': ' + error_description
+			
+			log.msg('Server build: ' + msg)
+			self.sendLine(msg)
+			self.do_help('server')
+	
+	def _server_delete(self, serverid):
+		"""_server_delete: Delete a server and free resources. Usage: server delete <serverid>"""
+		if not self.using:
+			self.sendLine('No account selected! Type: help use')
+			return
+		
+		delete = self.cac.server_delete(serverid)
+		status = delete['status'].encode('UTF-8')
+		
+		if 'ok' == status:
+			msg = 'Server with sid ' + str(serverid) + ' deleted! '
+			
+			log.msg(msg)
+			self.sendLine(msg)
+			
+		else:
+			error_description = delete['error_description'].encode('UTF-8')
+			msg               = status + ': ' + error_description + ': ' + serverid
+			
+			log.msg('Server delete: ' + msg)
 			self.sendLine(msg)
 	
 	### account ####################
@@ -450,7 +589,17 @@ class CloudAtCostConsole(basic.LineReceiver):
 			log.msg('Changed account ' + email)
 			self.sendLine('Now using ' + email)
 
-	def do_del_account(self, email):
+	def do_account(self, cmd='none', email='none', apikey='none'):
+		"""account: Perform account management functions. Usage: account [add|delete]"""
+	
+		if 'add' == cmd:
+			self._account_add(email, apikey)
+		elif 'delete' == cmd:
+			self._account_delete(email)
+		else:
+			self.do_help('account')
+	
+	def _account_delete(self, email):
 		"""del_account: delete an account. Example: del_account example@example.com"""
 		# todo: check if account exist first
 		params = [email]
@@ -464,7 +613,7 @@ class CloudAtCostConsole(basic.LineReceiver):
 		log.msg('Deleted account for ' + email)
 		self.sendLine('Deleted! I hope you were sure because this cannot be undone.')
 		
-	def do_add_account(self, email, apikey):
+	def _account_add(self, email, apikey):
 		"""add_account: """
 		self.sendLine('Adding entry for ' + email + ' with apikey ' + apikey)
 		params = [email, apikey]

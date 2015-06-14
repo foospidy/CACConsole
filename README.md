@@ -5,7 +5,7 @@ A Python based console for managing Cloud at Cost servers via the CaC API.
 
 Run `python cacconsole.py`
 
-Type "help" for list of commands (see below). CACConsole can help with managing multiple accounts, add accounts with the following command: `add_account <email> <apikey>`. Then use the `use` command to switch between multiple accounts, example: `use foo@example.com`.
+Type "help" for list of commands (see below). CACConsole can help with managing multiple accounts, add accounts with the following command: `account add <email> <apikey>`. Then use the `use` command to switch between multiple accounts, example: `use foo@example.com`.
 
 ```
    _____ _                 _         _      _____          _   

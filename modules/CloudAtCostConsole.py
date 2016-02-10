@@ -47,6 +47,7 @@ class CloudAtCostConsole(basic.LineReceiver):
 				method(*args)
 			except Exception, e:
 				self.sendLine('Error: ' + str(e))
+				self.sendLine('Make sure you have the latest CACPY, run: sudo pip install --upgrade cacpy')
 		
 		self.transport.write('CaC>')
 
